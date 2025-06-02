@@ -92,56 +92,24 @@ class RepoxAssistant:
             
             progress.update(task1, completed=True)
             
-            # Step 2: Select relevant files using strong AI
-            task2 = progress.add_task("Selecting relevant files...", total=None)
+            # Step 2: Build optimized context using hierarchical filtering
+            task2 = progress.add_task("Building optimized context...", total=None)
             
-            file_selection = self.context_builder.select_relevant_files(
+            # Use hierarchical filtering for efficient context building
+            optimized_context = self.context_builder.build_context_with_hierarchical_filtering(
                 question=question,
                 repository_structure=repository_structure,
                 file_sizes=file_sizes,
             )
             
-            # Validate selected files
-            valid_files, invalid_files = self.repository_analyzer.validate_file_selection(
-                file_selection.selected_files
-            )
-            
-            if self.config.verbose:
-                self.console.print(f"✅ Selected {len(valid_files)} valid files")
-                if invalid_files:
-                    self.console.print(f"⚠️  Skipped {len(invalid_files)} invalid files")
-                
-                self.console.print(f"[dim]Reasoning: {file_selection.reasoning}[/dim]")
-            
             progress.update(task2, completed=True)
             
-            # Step 3: Build context using repomix
-            task3 = progress.add_task("Building context with repomix...", total=None)
+            # Step 3: Generate answer using strong AI
+            task3 = progress.add_task("Generating answer...", total=None)
             
-            raw_context = self.context_builder.build_context_with_repomix(valid_files)
+            answer = self._generate_answer(question, optimized_context)
             
             progress.update(task3, completed=True)
-            
-            # Step 4: Optimize context using weak AI
-            task4 = progress.add_task("Optimizing context...", total=None)
-            
-            context_optimization = self.context_builder.optimize_context(
-                question=question,
-                raw_context=raw_context,
-                selected_files=valid_files,
-            )
-            
-            if self.config.verbose:
-                self.console.print(f"🔧 Context optimization: {context_optimization.summary}")
-            
-            progress.update(task4, completed=True)
-            
-            # Step 5: Generate answer using strong AI
-            task5 = progress.add_task("Generating answer...", total=None)
-            
-            answer = self._generate_answer(question, context_optimization.optimized_context)
-            
-            progress.update(task5, completed=True)
         
         if self.config.verbose:
             self.console.print(Panel(
@@ -194,6 +162,50 @@ Please analyze the code context and provide a comprehensive answer to the questi
     def get_repository_summary(self) -> dict:
         """Get a summary of the repository."""
         return self.repository_analyzer.get_repository_summary()
+    
+    def get_repository_info(self) -> dict:
+        """Get repository information (alias for get_repository_summary)."""
+        return self.get_repository_summary()
+    
+    def find(self, query: str, max_results: int = 10, search_content: bool = True) -> list:
+        """Find files and content in the repository."""
+        from .locator import FileLocator
+        
+        locator = FileLocator(
+            repo_path=self.repo_path,
+            config=self.config,
+            strong_model=self.strong_model
+        )
+        
+        result = locator.locate_files(query, max_results=max_results, search_content=search_content)
+        return result.get('files', [])[:max_results]
+    
+    def build_context(self, files: Optional[list] = None, query: Optional[str] = None) -> object:
+        """Build context from files or query."""
+        from .context import ContextBuilder
+        
+        context_builder = ContextBuilder(
+            repo_path=self.repo_path,
+            config=self.config,
+            weak_model=self.weak_model
+        )
+        
+        if files:
+            # Build context from specific files
+            result = context_builder.build_context_from_files(files)
+        elif query:
+            # Build context from query
+            result = context_builder.build_context_from_query(query)
+        else:
+            # Build context from all files
+            result = context_builder.build_context_from_files([])
+        
+        # Return a simple object with context attribute
+        class ContextResult:
+            def __init__(self, context):
+                self.context = context
+        
+        return ContextResult(result)
     
     def list_processable_files(self) -> list:
         """Get a list of files that can be processed."""
