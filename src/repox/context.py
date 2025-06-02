@@ -10,6 +10,7 @@ from rich.console import Console
 
 from .config import RepoxConfig
 from .filter import SmartFilter
+from .hierarchical_filter import HierarchicalFilter
 from .models import (
     AIMessage,
     AIModel,
@@ -37,6 +38,7 @@ class ContextBuilder:
         self.weak_model = weak_model
         self.console = Console()
         self.smart_filter = SmartFilter(config)
+        self.hierarchical_filter = HierarchicalFilter(repo_path, config, weak_model)
         self.repomix_integration = RepomixIntegration(repo_path, config)
     
     def select_relevant_files(
@@ -134,6 +136,121 @@ Please select the most relevant files to answer this question."""
                 selected_files=selected_files,
                 reasoning="Extracted files from response (JSON parsing failed)",
             )
+    
+    def select_relevant_files_hierarchical(
+        self,
+        question: str,
+        repository_structure: str,
+        file_sizes: Dict[str, int],
+    ) -> FileSelectionResponse:
+        """Use hierarchical filtering for efficient file selection."""
+        
+        if self.config.verbose:
+            self.console.print("[bold blue]🔍 Using hierarchical filtering for file selection...[/bold blue]")
+        
+        # Get candidate files from repository
+        candidate_files = list(file_sizes.keys())
+        
+        # Apply hierarchical filtering
+        file_scores = self.hierarchical_filter.filter_and_rank_files(
+            question=question,
+            candidate_files=candidate_files,
+            max_files=15
+        )
+        
+        # Extract selected files
+        selected_files = [score.file_path for score in file_scores]
+        
+        # Create reasoning summary
+        reasoning_parts = [
+            f"Applied hierarchical filtering to {len(candidate_files)} files.",
+            f"Selected top {len(selected_files)} files based on relevance scoring.",
+        ]
+        
+        if file_scores:
+            top_score = file_scores[0]
+            reasoning_parts.append(
+                f"Top file: {top_score.file_path} (score: {top_score.final_score:.3f})"
+            )
+        
+        return FileSelectionResponse(
+            selected_files=selected_files,
+            reasoning=" ".join(reasoning_parts),
+        )
+    
+    def build_context_with_hierarchical_filtering(
+        self,
+        question: str,
+        repository_structure: str,
+        file_sizes: Dict[str, int],
+    ) -> str:
+        """Build context using hierarchical filtering for optimal token usage."""
+        
+        if self.config.verbose:
+            self.console.print("[bold blue]🚀 Building context with hierarchical filtering...[/bold blue]")
+        
+        # Step 1: Select relevant files using hierarchical filtering
+        file_selection = self.select_relevant_files_hierarchical(
+            question, repository_structure, file_sizes
+        )
+        
+        if not file_selection.selected_files:
+            return "No relevant files found for the question."
+        
+        # Step 2: Extract relevant content with token optimization
+        relevant_content = self.hierarchical_filter.extract_relevant_content(
+            question=question,
+            file_scores=self.hierarchical_filter.filter_and_rank_files(
+                question, file_selection.selected_files
+            ),
+            max_tokens=self.config.max_context_size // 4  # Conservative token estimate
+        )
+        
+        if not relevant_content:
+            return "No relevant content found in selected files."
+        
+        # Step 3: Build formatted context
+        context_parts = [
+            "# Repository Context (Hierarchically Filtered)\n",
+            f"**Question:** {question}\n",
+            f"**Files analyzed:** {len(relevant_content)}\n",
+            f"**Selection reasoning:** {file_selection.reasoning}\n\n",
+        ]
+        
+        for file_path, content in relevant_content.items():
+            context_parts.append(f"## File: {file_path}\n")
+            context_parts.append(f"```{self._get_file_language(file_path)}\n")
+            context_parts.append(content)
+            context_parts.append("\n```\n\n")
+        
+        final_context = "".join(context_parts)
+        
+        if self.config.verbose:
+            estimated_tokens = len(final_context) // 4
+            self.console.print(f"[bold green]✅ Built optimized context (~{estimated_tokens} tokens)[/bold green]")
+        
+        return final_context
+    
+    def _get_file_language(self, file_path: str) -> str:
+        """Get language identifier for syntax highlighting."""
+        suffix = Path(file_path).suffix.lower()
+        language_map = {
+            '.py': 'python',
+            '.js': 'javascript',
+            '.ts': 'typescript',
+            '.java': 'java',
+            '.cpp': 'cpp',
+            '.c': 'c',
+            '.h': 'c',
+            '.md': 'markdown',
+            '.json': 'json',
+            '.yaml': 'yaml',
+            '.yml': 'yaml',
+            '.toml': 'toml',
+            '.ini': 'ini',
+            '.cfg': 'ini',
+        }
+        return language_map.get(suffix, 'text')
     
     def build_context_with_repomix(self, selected_files: List[str]) -> str:
         """Use enhanced repomix integration to build context from selected files."""

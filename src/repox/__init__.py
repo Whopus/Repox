@@ -2,9 +2,21 @@
 
 __version__ = "0.2.0"
 
-# Main API classes (elegant interface)
+# Elegant torch-like API (primary interface)
+from .elegant_api import (
+    ask,
+    find,
+    build,
+    info,
+    locate,
+    context,
+    configure,
+    reset,
+)
+
+# Full API classes (for advanced usage)
 from .api import Repox, SearchResult, ContextResult, AnswerResult
-from .api import ask, find, build_context
+from .api import ask as api_ask, find as api_find, build_context as api_build_context
 
 # Core components (for advanced usage)
 from .assistant import RepoxAssistant
@@ -16,14 +28,24 @@ from .repomix_integration import RepomixIntegration
 
 # Expose the elegant API as the primary interface
 __all__ = [
-    # Primary API (recommended)
+    # Elegant API (primary - torch-like)
+    "ask",
+    "find", 
+    "build",
+    "info",
+    "locate",
+    "context",
+    "configure",
+    "reset",
+    
+    # Full API classes
     "Repox",
     "SearchResult", 
     "ContextResult", 
     "AnswerResult",
-    "ask",
-    "find", 
-    "build_context",
+    "api_ask",
+    "api_find", 
+    "api_build_context",
     
     # Core components (advanced usage)
     "RepoxAssistant",
