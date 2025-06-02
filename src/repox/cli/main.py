@@ -395,7 +395,7 @@ def init(repo: Path, force: bool):
         sys.exit(1)
 
 
-@main.command()
+@cli.command()
 @click.argument("query")
 @click.option(
     "--format", "-f",
@@ -468,7 +468,7 @@ def locate(ctx: click.Context, query: str, format: str, max_results: int) -> Non
         sys.exit(1)
 
 
-@main.command()
+@cli.command()
 @click.option(
     "--files",
     help="Comma-separated list of files to include in context"

@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from repox.config import RepoxConfig
+from repox.core.config import RepoxConfig
 
 
 def test_default_config():

@@ -101,7 +101,7 @@ def configure(
 
 def _get_assistant(repo_path: Optional[Path] = None) -> RepoxAssistant:
     """Get or create the global assistant instance."""
-    global _global_config, _global_assistant, _global_repo_path
+    global _global_config, _global_assistant
     
     # Determine repository path
     if repo_path is None:
