@@ -13,11 +13,11 @@ from rich.table import Table
 from rich.text import Text
 from rich.markdown import Markdown
 
-from . import __version__
-from .assistant import RepoxAssistant
-from .config import RepoxConfig
-from .locator import FileLocator
-from .models import ModelFactory
+from .. import __version__
+from ..core.assistant import RepoxAssistant
+from ..core.config import RepoxConfig
+from ..processing.locator import FileLocator
+from ..utils.models import ModelFactory
 
 
 console = Console()

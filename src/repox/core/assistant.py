@@ -8,9 +8,9 @@ from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TextColumn
 
 from .config import RepoxConfig
-from .context import ContextBuilder
-from .models import AIMessage, AIModel, AnswerGenerationResponse, ModelFactory
-from .repository import RepositoryAnalyzer
+from ..processing.context import ContextBuilder
+from ..utils.models import AIMessage, AIModel, AnswerGenerationResponse, ModelFactory
+from ..repository.analyzer import RepositoryAnalyzer
 
 
 class RepoxAssistant:
@@ -169,7 +169,7 @@ Please analyze the code context and provide a comprehensive answer to the questi
     
     def find(self, query: str, max_results: int = 10, search_content: bool = True) -> list:
         """Find files and content in the repository."""
-        from .locator import FileLocator
+        from ..processing.locator import FileLocator
         
         locator = FileLocator(
             repo_path=self.repo_path,
@@ -182,7 +182,7 @@ Please analyze the code context and provide a comprehensive answer to the questi
     
     def build_context(self, files: Optional[list] = None, query: Optional[str] = None) -> object:
         """Build context from files or query."""
-        from .context import ContextBuilder
+        from ..processing.context import ContextBuilder
         
         context_builder = ContextBuilder(
             repo_path=self.repo_path,

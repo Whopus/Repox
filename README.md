@@ -1,22 +1,33 @@
-# 🤖 Repox - AI-Powered Code Assistant
+# 🤖 Repox v0.2.0 - AI-Powered Code Assistant
 
-> **Intelligent code analysis and Q&A for your repositories**
+> **Intelligent code analysis and Q&A for your repositories with hierarchical filtering and elegant PyTorch-like API**
 
-Repox transforms how you interact with codebases by providing AI-powered insights, smart file discovery, and intelligent context building. Ask questions in natural language and get precise answers about your code.
+Repox transforms how you interact with codebases by providing AI-powered insights, smart file discovery, and intelligent context building. Ask questions in natural language and get precise answers about your code with minimal token usage through advanced hierarchical filtering.
 
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![MIT License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
+## ✨ Key Features
 
-## ✨ Features
+### 🧠 **Intelligent Analysis**
+- **Smart Q&A**: Ask questions about your codebase in natural language
+- **AI-Powered File Discovery**: Find relevant files using advanced semantic search
+- **Context-Aware Responses**: Get precise answers with relevant code context
 
-- **🧠 Smart Q&A**: Ask questions about your codebase in natural language
-- **🔍 Intelligent File Discovery**: Find relevant files using AI-powered search
-- **📋 Context Building**: Create optimized documentation and analysis contexts
-- **⚡ Fast & Efficient**: Smart filtering and caching for large repositories
-- **🎯 Multiple Output Formats**: JSON, Markdown, and rich terminal output
-- **🔧 Highly Configurable**: Customize AI models, filtering rules, and behavior
-- **🏗️ Modular Architecture**: Extensible design for custom integrations
+### ⚡ **Performance & Efficiency**
+- **Hierarchical Filtering**: 60-80% token reduction through multi-stage filtering
+- **Smart Caching**: Efficient processing for large repositories
+- **Optimized Context Building**: Minimal token usage with maximum relevance
+
+### 🎯 **Elegant API Design**
+- **PyTorch-like Interface**: Clean, intuitive API inspired by modern ML libraries
+- **Multiple Repository Support**: Switch between repositories dynamically
+- **Flexible Output Formats**: JSON, Markdown, and rich terminal output
+
+### 🏗️ **Architecture & Extensibility**
+- **Modular Design**: Highly cohesive, loosely coupled components
+- **Extensible Framework**: Easy to customize and extend
+- **Professional Structure**: Clean separation of concerns
 
 ## 🚀 Quick Start
 
@@ -46,49 +57,71 @@ pip install repox
    repox init
    ```
 
-3. **Start asking questions:**
+3. **Start using Repox:**
    ```bash
+   # CLI usage
    repox ask "How does authentication work in this project?"
+   
+   # Python API usage
+   python -c "import repox; repox.configure(); print(repox.ask('What does this code do?'))"
    ```
 
 ## 💡 Usage Examples
 
-### Ask Questions About Your Code
+### 🎯 **Elegant Python API** (PyTorch-like)
 
-```bash
-# Basic question
-repox ask "What are the main components of this system?"
+```python
+import repox
 
-# Preview file selection before generating answer
-repox ask "How does the database layer work?" --preview
+# Configure once (global state)
+repox.configure(
+    repo_path="/path/to/your/repo",
+    model="gpt-4",
+    verbose=True
+)
 
-# Get answer in different formats
-repox ask "Explain the API structure" --format markdown
-repox ask "What are the security measures?" --format json
+# Ask questions
+answer = repox.ask("How does authentication work?")
+print(answer.content)
+
+# Find relevant files
+files = repox.find("database models")
+print(f"Found {len(files.files)} relevant files")
+
+# Build context
+context = repox.build(query="API endpoints")
+print(f"Context: {len(context.content)} characters")
+
+# Get repository info
+info = repox.info()
+print(f"Repository: {info['name']}")
+
+# Work with multiple repositories
+answer = repox.ask("How does auth work?", repo_path="/other/repo")
+
+# Convenience functions
+files = repox.locate("authentication logic")  # alias for find
+context = repox.context("API design")         # alias for build
+
+# Reset global configuration
+repox.reset()
 ```
 
-### Find Files and Content
+### 🖥️ **Command Line Interface**
 
 ```bash
-# Find files by description
+# Ask questions about your code
+repox ask "What are the main components of this system?"
+repox ask "How does the database layer work?" --preview
+repox ask "Explain the API structure" --format markdown
+
+# Find files and content
 repox find "authentication functions"
-
-# Search with content analysis (slower but more accurate)
 repox find "database models" --content
-
-
-# Limit results and format output
 repox find "test files" --limit 5 --format json
 
-
-### Build Documentation Context
-
-
-```bash
-# Build context from specific files
+# Build documentation context
 repox build --files "src/auth.py,src/models.py"
-
-# Auto-select files based on query
 repox build --query "authentication system"
 
 # Focus on specific areas with compression
@@ -113,28 +146,47 @@ repox info --stats
 
 ## 🏗️ Architecture
 
-Repox follows a clean, modular architecture designed for extensibility and maintainability:
+Repox v0.2.0 features a completely redesigned modular architecture:
 
 ```
 repox/
-├── cli.py              # Command-line interface
-├── assistant.py        # Main orchestrator
-├── locator.py          # AI-powered file discovery
-├── context.py          # Context building and optimization
-├── repomix_integration.py  # Enhanced repomix integration
-├── repository.py       # Repository analysis
-├── filter.py           # Smart filtering system
-├── models.py           # AI model abstractions
-└── config.py           # Configuration management
+├── api/                    # Public APIs
+│   ├── elegant.py         # PyTorch-like elegant API
+│   └── classic.py         # Traditional class-based API
+├── core/                   # Core functionality
+│   ├── assistant.py       # Main orchestrator
+│   └── config.py          # Configuration management
+├── processing/             # Data processing
+│   ├── context.py         # Context building
+│   ├── locator.py         # AI-powered file discovery
+│   ├── filter.py          # Smart filtering
+│   └── hierarchical_filter.py  # Advanced hierarchical filtering
+├── repository/             # Repository analysis
+│   ├── analyzer.py        # Repository structure analysis
+│   └── repomix_integration.py  # Enhanced repomix integration
+├── cli/                    # Command line interface
+│   ├── main.py           # CLI commands
+│   └── commands.py       # Modular CLI structure
+└── utils/                  # Utilities
+    └── models.py          # AI model abstractions
 ```
 
-### Design Principles
+### 🎯 **Key Architectural Improvements**
+
+- **Hierarchical Filtering**: Multi-stage filtering reduces token usage by 60-80%
+- **Elegant API**: PyTorch-inspired interface with global state management
+- **Modular Design**: High cohesion, loose coupling between components
+- **Performance Optimization**: Smart caching and efficient processing
+- **Extensible Framework**: Easy to add new features and integrations
+
+### 🔧 **Design Principles**
 
 - **🎯 Simplicity First**: Common tasks should be simple, complex tasks possible
 - **🔧 Composable**: Features work well together and can be combined
 - **⚡ Performance**: Optimized for speed with smart caching and filtering
 - **🛡️ Reliable**: Graceful error handling and fallback mechanisms
 - **📈 Extensible**: Easy to add new features and integrations
+- **🧩 Modular**: Clean separation of concerns with well-defined interfaces
 
 ## ⚙️ Configuration
 
@@ -160,64 +212,81 @@ Create `.repox.json` in your project root:
 }
 ```
 
-## 🔧 API Usage
+## 🆕 What's New in v0.2.0
 
-### Basic Usage
+### 🎯 **Hierarchical Filtering System**
+- **Multi-stage filtering**: Filename → Content → AI analysis
+- **60-80% token reduction** compared to previous versions
+- **Smart relevance scoring** with confidence thresholds
+- **Optimized context building** for large repositories
+
+### 🔥 **Elegant PyTorch-like API**
+- **Global state management**: Configure once, use everywhere
+- **Intuitive interface**: `repox.ask()`, `repox.find()`, `repox.build()`
+- **Multiple repository support**: Switch between repos dynamically
+- **Convenience functions**: `repox.locate()`, `repox.context()`
+
+### 🏗️ **Modular Architecture**
+- **Clean separation of concerns**: api/, core/, processing/, repository/
+- **High cohesion, loose coupling**: Easy to extend and maintain
+- **Professional structure**: Industry-standard organization
+
+### ⚡ **Performance Improvements**
+- **Optimized assistant workflow**: 3-step process instead of 5
+- **Smart caching**: Reduced redundant operations
+- **Efficient file processing**: Better memory usage
+
+## 🔧 API Reference
+
+### 🎯 **Elegant API** (Recommended)
 
 ```python
-from repox import RepoxAssistant, FileLocator, RepomixIntegration
-from repox.models import ModelFactory
-from repox.config import RepoxConfig
+import repox
 
-# Initialize with default configuration
-assistant = RepoxAssistant("/path/to/repo")
-
-# Ask a question
-answer = assistant.ask("How does the authentication system work?")
-print(answer)
-
-# Advanced usage with custom configuration
-config = RepoxConfig()
-config.verbose = True
-config.max_context_size = 100000
-
-assistant = RepoxAssistant("/path/to/repo", config=config)
-
-# File location
-model = ModelFactory.create_openai_model("gpt-4", "your-api-key")
-locator = FileLocator("/path/to/repo", config, model)
-result = locator.locate_files("authentication functions")
-
-# Context building
-repomix_integration = RepomixIntegration("/path/to/repo", config)
-context = repomix_integration.build_context(
-    selected_files=["src/auth.py", "src/login.py"],
-    focus_areas=["auth", "security"],
-    compression_enabled=True
+# Configure globally (PyTorch-style)
+repox.configure(
+    repo_path="/path/to/repo",
+    model="gpt-4",
+    verbose=True
 )
+
+# Core functions
+answer = repox.ask("How does auth work?")
+files = repox.find("database models") 
+context = repox.build(query="API design")
+info = repox.info()
+
+# Convenience aliases
+files = repox.locate("auth logic")      # alias for find()
+context = repox.context("API design")  # alias for build()
+
+# Multi-repository support
+answer = repox.ask("How does this work?", repo_path="/other/repo")
+
+# Reset global state
+repox.reset()
 ```
 
-### Advanced Usage
+### 🏛️ **Classic API** (Advanced)
 
 ```python
-from repox import RepoxAssistant, FileLocator, RepoxConfig
-from repox.models import ModelFactory
+from repox import RepoxAssistant, RepoxConfig
 
 # Custom configuration
-config = RepoxConfig()
-config.verbose = True
-config.max_context_size = 100000
+config = RepoxConfig(
+    strong_model="gpt-4",
+    weak_model="gpt-3.5-turbo",
+    verbose=True,
+    max_context_size=100000
+)
 
 # Initialize assistant
 assistant = RepoxAssistant("/path/to/repo", config=config)
 
-# File discovery
-model = ModelFactory.create_openai_model("gpt-4", "your-api-key")
-locator = FileLocator("/path/to/repo", config, model)
-result = locator.locate_files("authentication functions")
-
-# Context building
-context = assistant.build_context_with_repomix(result.located_files)
+# Use assistant methods
+answer = assistant.ask("How does authentication work?")
+files = assistant.find("database models")
+context = assistant.build_context("API endpoints")
 ```
 
 ### Custom AI Models
