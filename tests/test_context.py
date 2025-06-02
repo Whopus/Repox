@@ -4,8 +4,8 @@ import json
 
 import pytest
 
-from repox.context import ContextBuilder
-from repox.models import FileSelectionResponse
+from repox.processing.context import ContextBuilder
+from repox.utils.models import FileSelectionResponse
 
 
 def test_context_builder_init(temp_repo, test_config, mock_strong_model, mock_weak_model):

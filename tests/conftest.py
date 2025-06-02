@@ -6,8 +6,8 @@ from typing import Generator
 
 import pytest
 
-from repox.config import RepoxConfig
-from repox.models import AIMessage, AIModel, AIResponse
+from repox.core.config import RepoxConfig
+from repox.utils.models import AIMessage, AIModel, AIResponse
 
 
 class MockAIModel(AIModel):

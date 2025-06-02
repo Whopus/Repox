@@ -2,7 +2,7 @@
 
 import pytest
 
-from repox.models import AIMessage, AIResponse, ModelFactory, OpenAIModel
+from repox.utils.models import AIMessage, AIResponse, ModelFactory, OpenAIModel
 
 
 def test_ai_message():

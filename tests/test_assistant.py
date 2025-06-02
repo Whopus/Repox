@@ -2,8 +2,8 @@
 
 import pytest
 
-from repox.assistant import RepoxAssistant
-from repox.config import RepoxConfig
+from repox.core.assistant import RepoxAssistant
+from repox.core.config import RepoxConfig
 
 
 def test_assistant_init(temp_repo, test_config):
@@ -26,7 +26,7 @@ def test_assistant_init_invalid_repo():
 
 def test_assistant_init_no_api_key(temp_repo):
     """Test assistant initialization without API key."""
-    from repox.config import RepoxConfig
+    from repox.core.config import RepoxConfig
     
     config = RepoxConfig()
     config.openai_api_key = None
@@ -62,7 +62,7 @@ def test_list_processable_files(temp_repo, test_config):
 def test_preview_file_selection(temp_repo, test_config, monkeypatch):
     """Test previewing file selection."""
     # Mock the AI models to avoid actual API calls
-    from repox.models import FileSelectionResponse
+    from repox.utils.models import FileSelectionResponse
     
     def mock_select_files(*args, **kwargs):
         return FileSelectionResponse(
