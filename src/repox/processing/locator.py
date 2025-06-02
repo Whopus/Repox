@@ -8,7 +8,7 @@ from rich.console import Console
 from rich.table import Table
 
 from ..core.config import RepoxConfig
-from ..core.models import AIMessage, AIModel
+from ..utils.models import AIMessage, AIModel
 from ..repository.analyzer import RepositoryAnalyzer
 
 

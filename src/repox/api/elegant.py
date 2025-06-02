@@ -7,7 +7,7 @@ from typing import Dict, List, Optional, Union
 from .classic import SearchResult, ContextResult, AnswerResult
 from ..core.config import RepoxConfig
 from ..core.assistant import RepoxAssistant
-from ..core.models import ModelFactory
+from ..utils.models import ModelFactory
 
 
 # Global configuration state

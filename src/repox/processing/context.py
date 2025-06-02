@@ -11,7 +11,7 @@ from rich.console import Console
 from ..core.config import RepoxConfig
 from .filter import SmartFilter
 from .hierarchical_filter import HierarchicalFilter
-from ..core.models import (
+from ..utils.models import (
     AIMessage,
     AIModel,
     ContextBuildingRequest,

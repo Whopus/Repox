@@ -2,6 +2,6 @@
 
 from .assistant import RepoxAssistant
 from .config import RepoxConfig
-from .models import ModelFactory
+# Models moved to utils package
 
-__all__ = ['RepoxAssistant', 'RepoxConfig', 'ModelFactory']
+__all__ = ['RepoxAssistant', 'RepoxConfig']

@@ -1,5 +1,7 @@
 """Utility modules for Repox."""
 
-# Utilities will be added as needed
+from .models import AIModel, AIMessage, ModelFactory, AnswerGenerationResponse
 
-__all__ = []
+__all__ = ['AIModel', 'AIMessage', 'ModelFactory', 'AnswerGenerationResponse']
+
+# Additional utilities will be added as needed

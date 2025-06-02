@@ -9,7 +9,7 @@ from dataclasses import dataclass
 from rich.console import Console
 
 from ..core.config import RepoxConfig
-from ..core.models import AIMessage, AIModel
+from ..utils.models import AIMessage, AIModel
 
 
 @dataclass

@@ -23,7 +23,7 @@ from .core.assistant import RepoxAssistant
 from .core.config import RepoxConfig
 from .processing.filter import SmartFilter
 from .processing.locator import FileLocator
-from .core.models import AIModel, OpenAIModel, ModelFactory
+from .utils.models import AIModel, OpenAIModel, ModelFactory
 from .repository.repomix_integration import RepomixIntegration
 
 # Expose the elegant API as the primary interface

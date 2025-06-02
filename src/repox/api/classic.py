@@ -8,7 +8,7 @@ import json
 from ..core.assistant import RepoxAssistant
 from ..core.config import RepoxConfig
 from ..processing.locator import FileLocator
-from ..core.models import ModelFactory
+from ..utils.models import ModelFactory
 from ..repository.repomix_integration import RepomixIntegration
 
 
