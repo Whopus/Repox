@@ -29,7 +29,14 @@ pip install repox
 
 1. **Set your OpenAI API key:**
    ```bash
-   export OPENAI_API_KEY="your-api-key-here"
+    # Required
+    export OPENAI_API_KEY="your-api-key"
+
+    # Optional
+    export OPENAI_BASE_URL="https://api.openai.com/v1"
+    export REPOX_STRONG_MODEL="claude-sonnet-4-20250514"
+    export REPOX_WEAK_MODEL="gpt-4.1-mini"
+    export REPOX_VERBOSE="true"
    ```
 
 2. **Initialize configuration (optional):**
@@ -127,19 +134,6 @@ repox/
 - **📈 Extensible**: Easy to add new features and integrations
 
 ## ⚙️ Configuration
-
-### Environment Variables
-
-```bash
-# Required
-export OPENAI_API_KEY="your-api-key"
-
-# Optional
-export OPENAI_BASE_URL="https://api.openai.com/v1"
-export REPOX_STRONG_MODEL="gpt-4"
-export REPOX_WEAK_MODEL="gpt-3.5-turbo"
-export REPOX_VERBOSE="true"
-```
 
 ### Configuration File
 

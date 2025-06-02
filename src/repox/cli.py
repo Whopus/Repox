@@ -177,7 +177,7 @@ def find(query: str, repo: Path, config: Optional[Path], verbose: bool,
             repox_config.openai_base_url
         )
         
-        locator = FileLocator(repo, repox_config, model, console)
+        locator = FileLocator(repo, repox_config, model)
         
         if verbose:
             console.print(f"🔍 Searching for: {query}")
@@ -187,12 +187,12 @@ def find(query: str, repo: Path, config: Optional[Path], verbose: bool,
         if output_format == "json":
             console.print(json.dumps({
                 "query": query,
-                "files": result.located_files,
-                "confidence": result.confidence,
-                "reasoning": result.reasoning
+                "files": result["located_files"],
+                "confidence": result["confidence"],
+                "reasoning": result["reasoning"]
             }, indent=2))
         elif output_format == "simple":
-            for file_path in result.located_files:
+            for file_path in result["located_files"]:
                 console.print(file_path)
         else:
             # Table format
@@ -201,14 +201,14 @@ def find(query: str, repo: Path, config: Optional[Path], verbose: bool,
             table.add_column("Matches", style="yellow")
             table.add_column("Reason", style="green")
             
-            for file_path in result.located_files:
-                matches = len(result.content_matches.get(file_path, []))
-                reason = "AI analysis" if matches == 0 else f"{matches} matches"
+            for file_path in result["located_files"]:
+                matches = len(result["content_matches"])
+                reason = "AI analysis" if matches == 0 else f"{matches} content matches"
                 table.add_row(file_path, str(matches) if matches > 0 else "Filename", reason)
             
             console.print(table)
-            console.print(f"\n💭 Reasoning: {result.reasoning}")
-            console.print(f"🎯 Confidence: {result.confidence:.2f}")
+            console.print(f"\n💭 Reasoning: {result['reasoning']}")
+            console.print(f"🎯 Confidence: {result['confidence']:.2f}")
             
     except Exception as e:
         console.print(f"[red]Error: {e}[/red]")
@@ -254,13 +254,18 @@ def build(files: Optional[str], query: Optional[str], focus: Optional[str],
             file_list = [f.strip() for f in files.split(",")]
             if verbose:
                 console.print(f"📋 Building context from {len(file_list)} files...")
-            context = assistant.build_context_with_repomix(file_list)
+            context = assistant.context_builder.build_context_with_repomix(file_list)
         else:
             # Build from query
             if verbose:
                 console.print(f"🔍 Finding files for query: {query}")
-            selection = assistant.select_files(query)
-            context = assistant.build_context_with_repomix(selection.selected_files)
+            
+            # Get repository information
+            repo_structure = assistant.repository_analyzer.get_repository_structure()
+            file_sizes = assistant.repository_analyzer.get_file_sizes()
+            
+            selection = assistant.context_builder.select_relevant_files(query, repo_structure, file_sizes)
+            context = assistant.context_builder.build_context_with_repomix(selection.selected_files)
         
         # Apply focus areas if specified
         if focus:
