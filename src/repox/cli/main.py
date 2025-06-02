@@ -33,7 +33,9 @@ def get_config(config_path: Optional[Path] = None, verbose: bool = False) -> Rep
     """Get configuration with proper error handling."""
     try:
         if config_path:
-            return RepoxConfig.load_from_file(config_path)
+            if verbose:
+                console.print(f"[dim]Loading config from: {config_path}[/dim]")
+            config = RepoxConfig.load_from_file(config_path)
         else:
             # Load from environment and file
             config = RepoxConfig.load_from_env()
@@ -44,9 +46,34 @@ def get_config(config_path: Optional[Path] = None, verbose: bool = False) -> Rep
             env_data = {k: v for k, v in config.model_dump().items() if v is not None}
             config_data.update(env_data)
             
-            final_config = RepoxConfig(**config_data)
-            final_config.verbose = verbose
-            return final_config
+            config = RepoxConfig(**config_data)
+        
+        config.verbose = verbose
+        
+        if verbose:
+            # Show configuration details
+            from rich.table import Table
+            config_table = Table(title="⚙️  Configuration", show_header=True)
+            config_table.add_column("Setting", style="cyan")
+            config_table.add_column("Value", style="green")
+            
+            config_table.add_row("Strong Model", config.strong_model)
+            config_table.add_row("Weak Model", config.weak_model)
+            config_table.add_row("Max Context Size", f"{config.max_context_size:,} tokens")
+            config_table.add_row("Max File Size", f"{config.max_file_size / 1024:.1f} KB")
+            config_table.add_row("Skip Large Dirs", str(config.skip_large_dirs))
+            config_table.add_row("Large Dir Threshold", f"{config.large_dir_threshold:,} files")
+            
+            # Show API key status (masked)
+            api_key_status = "✅ Set" if config.openai_api_key else "❌ Not set"
+            config_table.add_row("OpenAI API Key", api_key_status)
+            
+            if config.openai_base_url != "https://api.openai.com/v1":
+                config_table.add_row("Custom Base URL", config.openai_base_url)
+            
+            console.print(config_table)
+        
+        return config
     except Exception as e:
         if verbose:
             console.print(f"[yellow]Warning: Could not load config: {e}[/yellow]")
@@ -105,20 +132,60 @@ def ask(question: str, repo: Path, config: Optional[Path], verbose: bool,
         if preview:
             # Show file selection preview
             if verbose:
-                console.print("🔍 Analyzing question and selecting files...")
+                console.print(Panel(
+                    f"[bold]Repository:[/bold] {repo}\n[bold]Question:[/bold] {question}",
+                    title="🔍 Preview Mode",
+                    border_style="yellow"
+                ))
             
             selection = assistant.preview_file_selection(question)
             
-            # Display selection
-            table = Table(title="📁 File Selection Preview")
-            table.add_column("File", style="cyan")
-            table.add_column("Reason", style="green")
+            # Display selection with enhanced details
+            if selection['valid_files']:
+                table = Table(title="📁 Selected Files", show_header=True)
+                table.add_column("File", style="cyan", no_wrap=False)
+                table.add_column("Size", style="green", justify="right")
+                table.add_column("Type", style="yellow")
+                
+                # Get file sizes for display
+                file_sizes = assistant.repository_analyzer.get_file_sizes()
+                
+                for file_path in selection['valid_files']:
+                    file_size = file_sizes.get(file_path, 0)
+                    size_str = f"{file_size / 1024:.1f} KB" if file_size > 0 else "Unknown"
+                    file_ext = Path(file_path).suffix or "No ext"
+                    table.add_row(file_path, size_str, file_ext)
+                
+                console.print(table)
+                
+                # Summary statistics
+                total_files = len(selection['valid_files'])
+                total_size = sum(file_sizes.get(f, 0) for f in selection['valid_files'])
+                
+                summary_table = Table(title="📊 Selection Summary", show_header=True)
+                summary_table.add_column("Metric", style="cyan")
+                summary_table.add_column("Value", style="green")
+                
+                summary_table.add_row("Files selected", str(total_files))
+                summary_table.add_row("Total size", f"{total_size / 1024:.1f} KB")
+                summary_table.add_row("Average size", f"{(total_size / total_files / 1024):.1f} KB" if total_files > 0 else "0 KB")
+                
+                console.print(summary_table)
+            else:
+                console.print("[red]❌ No files selected[/red]")
             
-            for file_path in selection.selected_files:
-                table.add_row(file_path, "Selected by AI")
+            # Show invalid files if any
+            if selection['invalid_files']:
+                console.print(f"\n[red]⚠️  {len(selection['invalid_files'])} invalid files were filtered out:[/red]")
+                for invalid_file in selection['invalid_files']:
+                    console.print(f"[dim]  - {invalid_file}[/dim]")
             
-            console.print(table)
-            console.print(f"\n💭 Reasoning: {selection.reasoning}")
+            # Show AI reasoning
+            console.print(Panel(
+                selection['reasoning'],
+                title="💭 AI Reasoning",
+                border_style="green"
+            ))
             return
         
         # Get full answer
@@ -172,6 +239,13 @@ def find(query: str, repo: Path, config: Optional[Path], verbose: bool,
     try:
         repox_config = get_config(config, verbose)
         
+        if verbose:
+            console.print(Panel(
+                f"[bold]Query:[/bold] {query}\n[bold]Repository:[/bold] {repo}\n[bold]Content search:[/bold] {'Yes' if content else 'No'}\n[bold]Max results:[/bold] {limit}",
+                title="🔍 File Search",
+                border_style="yellow"
+            ))
+        
         # Create AI model for file location
         model = ModelFactory.create_openai_model(
             repox_config.strong_model,
@@ -182,9 +256,14 @@ def find(query: str, repo: Path, config: Optional[Path], verbose: bool,
         locator = FileLocator(repo, repox_config, model)
         
         if verbose:
-            console.print(f"🔍 Searching for: {query}")
+            console.print(f"[yellow]🤖 Using {repox_config.strong_model} for file location...[/yellow]")
+            console.print(f"[yellow]📊 Analyzing repository structure...[/yellow]")
         
         result = locator.locate_files(query, max_results=limit, search_content=content)
+        
+        if verbose:
+            console.print(f"[green]✅ Found {len(result['located_files'])} files[/green]")
+            console.print(f"[dim]Confidence score: {result['confidence']:.3f}[/dim]")
         
         if output_format == "json":
             console.print(json.dumps({

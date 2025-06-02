@@ -188,28 +188,68 @@ Please select the most relevant files to answer this question."""
         
         if self.config.verbose:
             self.console.print("[bold blue]🚀 Building context with hierarchical filtering...[/bold blue]")
+            self.console.print(f"[dim]Max context size: {self.config.max_context_size} tokens[/dim]")
         
         # Step 1: Select relevant files using hierarchical filtering
+        if self.config.verbose:
+            self.console.print("[yellow]📋 Step 1: Selecting relevant files...[/yellow]")
+        
         file_selection = self.select_relevant_files_hierarchical(
             question, repository_structure, file_sizes
         )
         
+        if self.config.verbose:
+            self.console.print(f"[green]✅ Selected {len(file_selection.selected_files)} files[/green]")
+        
         if not file_selection.selected_files:
+            if self.config.verbose:
+                self.console.print("[red]❌ No relevant files found[/red]")
             return "No relevant files found for the question."
         
         # Step 2: Extract relevant content with token optimization
+        if self.config.verbose:
+            self.console.print("[yellow]🔍 Step 2: Filtering and ranking files...[/yellow]")
+        
+        file_scores = self.hierarchical_filter.filter_and_rank_files(
+            question, file_selection.selected_files
+        )
+        
+        if self.config.verbose:
+            self.console.print(f"[green]✅ Ranked {len(file_scores)} files by relevance[/green]")
+            # Show top files
+            from rich.table import Table
+            score_table = Table(title="🏆 Top Ranked Files", show_header=True)
+            score_table.add_column("File", style="cyan")
+            score_table.add_column("Score", style="green", justify="right")
+            
+            for file_path, score in sorted(file_scores.items(), key=lambda x: x[1], reverse=True)[:5]:
+                score_table.add_row(file_path, f"{score:.3f}")
+            
+            self.console.print(score_table)
+            self.console.print("[yellow]📝 Step 3: Extracting relevant content...[/yellow]")
+        
         relevant_content = self.hierarchical_filter.extract_relevant_content(
             question=question,
-            file_scores=self.hierarchical_filter.filter_and_rank_files(
-                question, file_selection.selected_files
-            ),
+            file_scores=file_scores,
             max_tokens=self.config.max_context_size // 4  # Conservative token estimate
         )
+        
+        if self.config.verbose:
+            if relevant_content:
+                total_content_size = sum(len(content) for content in relevant_content.values())
+                self.console.print(f"[green]✅ Extracted content from {len(relevant_content)} files[/green]")
+                self.console.print(f"[dim]Total content size: {total_content_size} characters[/dim]")
+                self.console.print(f"[dim]Estimated tokens: ~{total_content_size // 4}[/dim]")
+            else:
+                self.console.print("[red]❌ No relevant content extracted[/red]")
         
         if not relevant_content:
             return "No relevant content found in selected files."
         
         # Step 3: Build formatted context
+        if self.config.verbose:
+            self.console.print("[yellow]📄 Step 4: Building formatted context...[/yellow]")
+        
         context_parts = [
             "# Repository Context (Hierarchically Filtered)\n",
             f"**Question:** {question}\n",
