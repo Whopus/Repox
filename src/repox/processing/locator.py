@@ -7,9 +7,9 @@ from typing import Dict, List, Optional, Tuple
 from rich.console import Console
 from rich.table import Table
 
-from .config import RepoxConfig
-from .models import AIMessage, AIModel
-from .repository import RepositoryAnalyzer
+from ..core.config import RepoxConfig
+from ..core.models import AIMessage, AIModel
+from ..repository.analyzer import RepositoryAnalyzer
 
 
 class FileLocator:

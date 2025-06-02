@@ -8,8 +8,8 @@ from dataclasses import dataclass
 
 from rich.console import Console
 
-from .config import RepoxConfig
-from .models import AIMessage, AIModel
+from ..core.config import RepoxConfig
+from ..core.models import AIMessage, AIModel
 
 
 @dataclass

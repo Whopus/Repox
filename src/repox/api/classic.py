@@ -5,11 +5,11 @@ from typing import Dict, List, Optional, Union, Any
 from dataclasses import dataclass
 import json
 
-from .assistant import RepoxAssistant
-from .config import RepoxConfig
-from .locator import FileLocator
-from .models import ModelFactory
-from .repomix_integration import RepomixIntegration
+from ..core.assistant import RepoxAssistant
+from ..core.config import RepoxConfig
+from ..processing.locator import FileLocator
+from ..core.models import ModelFactory
+from ..repository.repomix_integration import RepomixIntegration
 
 
 @dataclass

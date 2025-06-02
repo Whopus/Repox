@@ -8,9 +8,9 @@ from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TextColumn
 
 from .config import RepoxConfig
-from .context import ContextBuilder
+from ..processing.context import ContextBuilder
 from .models import AIMessage, AIModel, AnswerGenerationResponse, ModelFactory
-from .repository import RepositoryAnalyzer
+from ..repository.analyzer import RepositoryAnalyzer
 
 
 class RepoxAssistant:

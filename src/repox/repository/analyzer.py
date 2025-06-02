@@ -8,7 +8,7 @@ import pathspec
 from rich.console import Console
 from rich.tree import Tree
 
-from .config import RepoxConfig
+from ..core.config import RepoxConfig
 
 
 class RepositoryAnalyzer:

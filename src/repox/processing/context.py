@@ -8,10 +8,10 @@ from typing import Dict, List, Optional
 from repomix import RepoProcessor, RepomixConfig
 from rich.console import Console
 
-from .config import RepoxConfig
+from ..core.config import RepoxConfig
 from .filter import SmartFilter
 from .hierarchical_filter import HierarchicalFilter
-from .models import (
+from ..core.models import (
     AIMessage,
     AIModel,
     ContextBuildingRequest,
@@ -19,7 +19,7 @@ from .models import (
     FileSelectionRequest,
     FileSelectionResponse,
 )
-from .repomix_integration import RepomixIntegration
+from ..repository.repomix_integration import RepomixIntegration
 
 
 class ContextBuilder:

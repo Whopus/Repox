@@ -7,8 +7,8 @@ from typing import Dict, List, Optional
 from repomix import RepoProcessor, RepomixConfig
 from rich.console import Console
 
-from .config import RepoxConfig
-from .filter import SmartFilter
+from ..core.config import RepoxConfig
+from ..processing.filter import SmartFilter
 
 
 class RepomixIntegration:
