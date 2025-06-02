@@ -7,6 +7,7 @@ Repox transforms how you interact with codebases by providing AI-powered insight
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![MIT License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
+
 ## ✨ Features
 
 - **🧠 Smart Q&A**: Ask questions about your codebase in natural language
@@ -75,11 +76,13 @@ repox find "authentication functions"
 # Search with content analysis (slower but more accurate)
 repox find "database models" --content
 
+
 # Limit results and format output
 repox find "test files" --limit 5 --format json
-```
+
 
 ### Build Documentation Context
+
 
 ```bash
 # Build context from specific files
@@ -162,7 +165,9 @@ Create `.repox.json` in your project root:
 ### Basic Usage
 
 ```python
-from repox import RepoxAssistant
+from repox import RepoxAssistant, FileLocator, RepomixIntegration
+from repox.models import ModelFactory
+from repox.config import RepoxConfig
 
 # Initialize with default configuration
 assistant = RepoxAssistant("/path/to/repo")
@@ -170,6 +175,26 @@ assistant = RepoxAssistant("/path/to/repo")
 # Ask a question
 answer = assistant.ask("How does the authentication system work?")
 print(answer)
+
+# Advanced usage with custom configuration
+config = RepoxConfig()
+config.verbose = True
+config.max_context_size = 100000
+
+assistant = RepoxAssistant("/path/to/repo", config=config)
+
+# File location
+model = ModelFactory.create_openai_model("gpt-4", "your-api-key")
+locator = FileLocator("/path/to/repo", config, model)
+result = locator.locate_files("authentication functions")
+
+# Context building
+repomix_integration = RepomixIntegration("/path/to/repo", config)
+context = repomix_integration.build_context(
+    selected_files=["src/auth.py", "src/login.py"],
+    focus_areas=["auth", "security"],
+    compression_enabled=True
+)
 ```
 
 ### Advanced Usage
