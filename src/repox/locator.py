@@ -27,7 +27,7 @@ class FileLocator:
         self.console = Console()
         self.repository_analyzer = RepositoryAnalyzer(self.repo_path, self.config)
     
-    def locate_files(self, query: str) -> Dict[str, any]:
+    def locate_files(self, query: str, max_results: Optional[int] = None, search_content: bool = False) -> Dict[str, any]:
         """Locate files relevant to the user's query."""
         
         if self.config.verbose:
@@ -49,7 +49,13 @@ class FileLocator:
         )
         
         # Search for content within files if needed
-        content_matches = self._search_content_in_files(query, valid_files)
+        content_matches = []
+        if search_content:
+            content_matches = self._search_content_in_files(query, valid_files)
+        
+        # Apply max_results limit if specified
+        if max_results and len(valid_files) > max_results:
+            valid_files = valid_files[:max_results]
         
         result = {
             "query": query,
