@@ -25,14 +25,50 @@ class RepoxConfig(BaseModel):
     # Repository Analysis
     exclude_patterns: List[str] = Field(
         default_factory=lambda: [
-            "*.log", "*.tmp", "*.cache",
-            "node_modules/**", "__pycache__/**", ".git/**",
-            "*.pyc", "*.pyo", "*.pyd", "*.so", "*.dll",
-            "*.jpg", "*.jpeg", "*.png", "*.gif", "*.bmp",
-            "*.mp4", "*.avi", "*.mov", "*.wmv",
-            "*.zip", "*.tar", "*.gz", "*.rar",
-            "*.bin", "*.exe", "*.dat", "*.db",
-            ".env", ".env.*", "*.key", "*.pem"
+            # Version control
+            ".git/**", ".svn/**", ".hg/**", ".bzr/**",
+            
+            # Build artifacts
+            "build/**", "dist/**", "out/**", "target/**",
+            "*.pyc", "*.pyo", "*.pyd", "*.so", "*.dll", "*.dylib",
+            "*.class", "*.o", "*.obj", "*.exe", "*.bin",
+            
+            # Dependencies
+            "node_modules/**", "__pycache__/**", ".venv/**", "venv/**",
+            "vendor/**", "bower_components/**",
+            
+            # Logs and temporary files
+            "*.log", "*.tmp", "*.cache", "*.pid",
+            "logs/**", "tmp/**", "temp/**", "cache/**",
+            
+            # Media files
+            "*.jpg", "*.jpeg", "*.png", "*.gif", "*.bmp", "*.ico", "*.svg",
+            "*.mp3", "*.mp4", "*.avi", "*.mov", "*.wmv", "*.flv",
+            "*.pdf", "*.doc", "*.docx", "*.xls", "*.xlsx", "*.ppt", "*.pptx",
+            
+            # Archives
+            "*.zip", "*.tar", "*.gz", "*.rar", "*.7z", "*.bz2",
+            
+            # Databases
+            "*.db", "*.sqlite", "*.sqlite3", "*.mdb",
+            
+            # Security sensitive
+            ".env", ".env.*", "*.key", "*.pem", "*.cert", "*.crt",
+            "*.p12", "*.pfx", "*.jks", "*.keystore",
+            
+            # IDE and editor files
+            ".idea/**", ".vscode/**", "*.swp", "*.swo", "*~", "*.bak",
+            ".project", ".settings/**", ".classpath", "*.sublime-*",
+            
+            # OS files
+            ".DS_Store", "Thumbs.db", "desktop.ini",
+            
+            # Package manager files
+            "package-lock.json", "yarn.lock", "Pipfile.lock", "poetry.lock",
+            
+            # Test coverage and reports
+            ".coverage", "htmlcov/**", ".pytest_cache/**", ".tox/**",
+            "coverage.xml", "*.cover", "*.py,cover",
         ],
         description="Patterns to exclude from analysis"
     )
@@ -47,6 +83,15 @@ class RepoxConfig(BaseModel):
     )
     
     large_dir_threshold: int = Field(default=100, description="Skip directories with more than this many files")
+    
+    # File Location Configuration
+    location_confidence_threshold: float = Field(default=0.7, description="Minimum confidence for file location")
+    max_content_search_files: int = Field(default=50, description="Maximum files to search for content matches")
+    
+    # Context Building Configuration
+    enable_compression: bool = Field(default=False, description="Enable context compression by default")
+    preserve_file_structure: bool = Field(default=True, description="Preserve file structure in context")
+    include_file_metadata: bool = Field(default=True, description="Include file metadata in context")
     
     # Output Configuration
     verbose: bool = Field(default=False, description="Enable verbose output")

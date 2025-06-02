@@ -9,6 +9,7 @@ from repomix import RepoProcessor, RepomixConfig
 from rich.console import Console
 
 from .config import RepoxConfig
+from .filter import SmartFilter
 from .models import (
     AIMessage,
     AIModel,
@@ -17,6 +18,7 @@ from .models import (
     FileSelectionRequest,
     FileSelectionResponse,
 )
+from .repomix_integration import RepomixIntegration
 
 
 class ContextBuilder:
@@ -34,6 +36,8 @@ class ContextBuilder:
         self.strong_model = strong_model
         self.weak_model = weak_model
         self.console = Console()
+        self.smart_filter = SmartFilter(config)
+        self.repomix_integration = RepomixIntegration(repo_path, config)
     
     def select_relevant_files(
         self,
@@ -132,51 +136,28 @@ Please select the most relevant files to answer this question."""
             )
     
     def build_context_with_repomix(self, selected_files: List[str]) -> str:
-        """Use repomix to build context from selected files."""
+        """Use enhanced repomix integration to build context from selected files."""
         
         if not selected_files:
             return "No files selected for context."
         
         if self.config.verbose:
-            self.console.print(f"[bold green]📦 Building context with repomix for {len(selected_files)} files...[/bold green]")
-        
-        # Create repomix configuration
-        repomix_config = RepomixConfig()
-        
-        # Configure repomix to include only selected files
-        repomix_config.include = selected_files
-        
-        # Configure output settings
-        repomix_config.output.style = "markdown"
-        repomix_config.output.show_line_numbers = True
-        repomix_config.output.show_file_stats = True
-        repomix_config.output.calculate_tokens = False
-        
-        # Disable security checks for internal processing
-        repomix_config.security.enable_security_check = False
-        
-        # Configure ignore patterns to be more permissive
-        repomix_config.ignore.use_default_ignore = False
-        repomix_config.ignore.use_gitignore = False
-        repomix_config.ignore.custom_patterns = []
+            self.console.print(f"[bold green]📦 Building context with enhanced repomix for {len(selected_files)} files...[/bold green]")
         
         try:
-            # Create temporary output file
-            with tempfile.NamedTemporaryFile(mode='w', suffix='.md', delete=False) as temp_file:
-                repomix_config.output.file_path = temp_file.name
+            # Use enhanced repomix integration
+            context_result = self.repomix_integration.build_context(
+                selected_files=selected_files,
+                compression_enabled=False,
+                max_size=self.config.max_context_size,
+            )
             
-            # Process repository with repomix
-            processor = RepoProcessor(str(self.repo_path), config=repomix_config)
-            result = processor.process()
-            
-            # Read the generated content
-            with open(repomix_config.output.file_path, 'r', encoding='utf-8') as f:
-                content = f.read()
-            
-            # Clean up temporary file
-            Path(repomix_config.output.file_path).unlink(missing_ok=True)
-            
-            return content
+            if context_result["success"]:
+                return context_result["content"]
+            else:
+                if self.config.verbose:
+                    self.console.print(f"[bold red]❌ Error building context: {context_result['error']}[/bold red]")
+                return self._build_context_fallback(selected_files)
             
         except Exception as e:
             if self.config.verbose:
