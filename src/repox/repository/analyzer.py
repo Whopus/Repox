@@ -191,10 +191,37 @@ class RepositoryAnalyzer:
             reverse=True
         )[:10]
         
+        # Get processable files count
+        processable_files = self.get_processable_files()
+        processable_count = len(processable_files)
+        
+        # Extract languages from file extensions
+        languages = set()
+        for ext in file_types.keys():
+            if ext != "(no extension)":
+                # Map common extensions to languages
+                lang_map = {
+                    '.py': 'Python', '.js': 'JavaScript', '.ts': 'TypeScript',
+                    '.java': 'Java', '.cpp': 'C++', '.c': 'C', '.cs': 'C#',
+                    '.go': 'Go', '.rs': 'Rust', '.php': 'PHP', '.rb': 'Ruby',
+                    '.swift': 'Swift', '.kt': 'Kotlin', '.scala': 'Scala',
+                    '.html': 'HTML', '.css': 'CSS', '.scss': 'SCSS',
+                    '.json': 'JSON', '.xml': 'XML', '.yaml': 'YAML', '.yml': 'YAML',
+                    '.md': 'Markdown', '.txt': 'Text', '.sh': 'Shell',
+                    '.sql': 'SQL', '.r': 'R', '.m': 'MATLAB'
+                }
+                if ext in lang_map:
+                    languages.add(lang_map[ext])
+                else:
+                    languages.add(ext[1:].upper())  # Remove dot and uppercase
+        
         return {
             "total_files": total_files,
+            "processable_files": processable_count,
             "total_size": total_size,
+            "total_size_mb": total_size / (1024 * 1024),
             "file_types": file_types,
+            "languages": sorted(list(languages)),
             "largest_files": largest_files,
             "repository_path": str(self.repo_path),
         }

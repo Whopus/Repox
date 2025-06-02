@@ -72,12 +72,15 @@ class RepoxAssistant:
                 title="🤖 Repox Assistant",
                 border_style="blue"
             ))
+            self.console.print(f"[dim]Repository path: {self.repo_path}[/dim]")
+            self.console.print(f"[dim]Strong model: {self.config.strong_model}[/dim]")
+            self.console.print(f"[dim]Weak model: {self.config.weak_model}[/dim]")
         
         with Progress(
             SpinnerColumn(),
             TextColumn("[progress.description]{task.description}"),
             console=self.console,
-            transient=True,
+            transient=not self.config.verbose,  # Keep progress visible in verbose mode
         ) as progress:
             
             # Step 1: Analyze repository structure
@@ -88,12 +91,29 @@ class RepoxAssistant:
             
             if self.config.verbose:
                 repo_summary = self.repository_analyzer.get_repository_summary()
-                self.console.print(f"📊 Found {repo_summary['total_files']} processable files")
-            
-            progress.update(task1, completed=True)
+                progress.update(task1, completed=True)
+                
+                # Detailed repository analysis
+                from rich.table import Table
+                repo_table = Table(title="📊 Repository Analysis", show_header=True)
+                repo_table.add_column("Metric", style="cyan")
+                repo_table.add_column("Value", style="green")
+                
+                repo_table.add_row("Total files", str(repo_summary['total_files']))
+                repo_table.add_row("Processable files", str(repo_summary['processable_files']))
+                repo_table.add_row("Total size", f"{repo_summary['total_size_mb']:.2f} MB")
+                repo_table.add_row("Languages", ", ".join(repo_summary['languages']))
+                
+                self.console.print(repo_table)
+                self.console.print(f"[dim]Repository structure length: {len(repository_structure)} characters[/dim]")
+            else:
+                progress.update(task1, completed=True)
             
             # Step 2: Build optimized context using hierarchical filtering
             task2 = progress.add_task("Building optimized context...", total=None)
+            
+            if self.config.verbose:
+                self.console.print("[yellow]🔍 Starting hierarchical file filtering...[/yellow]")
             
             # Use hierarchical filtering for efficient context building
             optimized_context = self.context_builder.build_context_with_hierarchical_filtering(
@@ -102,14 +122,34 @@ class RepoxAssistant:
                 file_sizes=file_sizes,
             )
             
-            progress.update(task2, completed=True)
+            if self.config.verbose:
+                progress.update(task2, completed=True)
+                self.console.print(f"[green]✅ Context built successfully[/green]")
+                self.console.print(f"[dim]Context length: {len(optimized_context)} characters[/dim]")
+                
+                # Show context size breakdown
+                context_lines = optimized_context.count('\n')
+                self.console.print(f"[dim]Context lines: {context_lines}[/dim]")
+                
+                # Estimate token count (rough approximation)
+                estimated_tokens = len(optimized_context) // 4
+                self.console.print(f"[dim]Estimated tokens: ~{estimated_tokens}[/dim]")
+            else:
+                progress.update(task2, completed=True)
             
             # Step 3: Generate answer using strong AI
             task3 = progress.add_task("Generating answer...", total=None)
             
+            if self.config.verbose:
+                self.console.print(f"[yellow]🧠 Generating answer using {self.config.strong_model}...[/yellow]")
+            
             answer = self._generate_answer(question, optimized_context)
             
             progress.update(task3, completed=True)
+            
+            if self.config.verbose:
+                self.console.print(f"[green]✅ Answer generated successfully[/green]")
+                self.console.print(f"[dim]Answer length: {len(answer)} characters[/dim]")
         
         if self.config.verbose:
             self.console.print(Panel(
@@ -214,8 +254,21 @@ Please analyze the code context and provide a comprehensive answer to the questi
     def preview_file_selection(self, question: str) -> dict:
         """Preview which files would be selected for a question without generating an answer."""
         
+        if self.config.verbose:
+            self.console.print(Panel(
+                f"[bold blue]Question:[/bold blue] {question}",
+                title="🔍 File Selection Preview",
+                border_style="blue"
+            ))
+            self.console.print("[yellow]📊 Analyzing repository structure...[/yellow]")
+        
         repository_structure = self.repository_analyzer.get_repository_structure()
         file_sizes = self.repository_analyzer.get_file_sizes()
+        
+        if self.config.verbose:
+            repo_summary = self.repository_analyzer.get_repository_summary()
+            self.console.print(f"[green]✅ Found {repo_summary['total_files']} total files, {repo_summary['processable_files']} processable[/green]")
+            self.console.print(f"[yellow]🤖 Using {self.config.strong_model} for file selection...[/yellow]")
         
         file_selection = self.context_builder.select_relevant_files(
             question=question,
@@ -223,9 +276,25 @@ Please analyze the code context and provide a comprehensive answer to the questi
             file_sizes=file_sizes,
         )
         
+        if self.config.verbose:
+            self.console.print(f"[green]✅ AI selected {len(file_selection.selected_files)} files[/green]")
+            self.console.print("[yellow]🔍 Validating file selection...[/yellow]")
+        
         valid_files, invalid_files = self.repository_analyzer.validate_file_selection(
             file_selection.selected_files
         )
+        
+        if self.config.verbose:
+            if invalid_files:
+                self.console.print(f"[red]⚠️  {len(invalid_files)} invalid files filtered out[/red]")
+                for invalid_file in invalid_files:
+                    self.console.print(f"[dim]  - {invalid_file}[/dim]")
+            
+            self.console.print(f"[green]✅ Final selection: {len(valid_files)} valid files[/green]")
+            
+            # Show file size breakdown
+            total_size = sum(file_sizes.get(f, 0) for f in valid_files)
+            self.console.print(f"[dim]Total size of selected files: {total_size / 1024:.1f} KB[/dim]")
         
         return {
             "question": question,

@@ -33,7 +33,7 @@ def read_requirements():
 
 setup(
     name="repox",
-    version="1.0.0",
+    version="0.2.0",
     author="OpenHands AI",
     author_email="openhands@all-hands.dev",
     description="AI-Powered Code Context Management Assistant",
@@ -82,7 +82,7 @@ setup(
     },
     entry_points={
         "console_scripts": [
-            "repox=repox.cli:main",
+            "repox=repox.cli.main:main",
         ],
     },
     include_package_data=True,
