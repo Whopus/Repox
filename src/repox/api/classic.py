@@ -150,7 +150,7 @@ class Repox:
             AnswerResult with the answer or SearchResult if preview=True
         """
         if preview:
-            selection = self.assistant.select_files(question)
+            selection = self.assistant.preview_file_selection(question)
             return SearchResult(
                 files=selection.selected_files,
                 confidence=0.8,  # Default confidence for file selection
@@ -159,7 +159,7 @@ class Repox:
             )
         
         # Get file selection first
-        selection = self.assistant.select_files(question)
+        selection = self.assistant.preview_file_selection(question)
         
         # Generate answer
         answer = self.assistant.ask(question)

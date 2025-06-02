@@ -107,7 +107,7 @@ def ask(question: str, repo: Path, config: Optional[Path], verbose: bool,
             if verbose:
                 console.print("🔍 Analyzing question and selecting files...")
             
-            selection = assistant.select_files(question)
+            selection = assistant.preview_file_selection(question)
             
             # Display selection
             table = Table(title="📁 File Selection Preview")
