@@ -222,8 +222,8 @@ Please select the most relevant files to answer this question."""
             score_table.add_column("File", style="cyan")
             score_table.add_column("Score", style="green", justify="right")
             
-            for file_path, score in sorted(file_scores.items(), key=lambda x: x[1], reverse=True)[:5]:
-                score_table.add_row(file_path, f"{score:.3f}")
+            for file_score in file_scores[:5]:
+                score_table.add_row(file_score.file_path, f"{file_score.final_score:.3f}")
             
             self.console.print(score_table)
             self.console.print("[yellow]📝 Step 3: Extracting relevant content...[/yellow]")

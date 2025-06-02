@@ -477,6 +477,22 @@ def init(repo: Path, force: bool):
 @cli.command()
 @click.argument("query")
 @click.option(
+    "-r", "--repo",
+    type=click.Path(exists=True, file_okay=False, dir_okay=True),
+    default=".",
+    help="Repository path"
+)
+@click.option(
+    "-c", "--config",
+    type=click.Path(exists=True, file_okay=True, dir_okay=False),
+    help="Configuration file path"
+)
+@click.option(
+    "-v", "--verbose",
+    is_flag=True,
+    help="Verbose output"
+)
+@click.option(
     "--format", "-f",
     type=click.Choice(["table", "json", "simple"]),
     default="table",
@@ -488,8 +504,7 @@ def init(repo: Path, force: bool):
     default=10,
     help="Maximum number of results to show"
 )
-@click.pass_context
-def locate(ctx: click.Context, query: str, format: str, max_results: int) -> None:
+def locate(query: str, repo: str, config: str, verbose: bool, format: str, max_results: int) -> None:
     """Locate files and content based on a query.
     
     This command helps you find files that are relevant to your query,
@@ -502,15 +517,10 @@ def locate(ctx: click.Context, query: str, format: str, max_results: int) -> Non
     """
     
     try:
-        # Get configuration from context
-        repo = ctx.obj['repo']
-        config_path = ctx.obj['config']
-        verbose = ctx.obj['verbose']
-        
         # Load configuration
         repox_config = RepoxConfig()
-        if config_path:
-            repox_config = RepoxConfig.load_from_file(config_path)
+        if config:
+            repox_config = RepoxConfig.load_from_file(config)
         else:
             repox_config = RepoxConfig().get_effective_config()
         
@@ -549,6 +559,22 @@ def locate(ctx: click.Context, query: str, format: str, max_results: int) -> Non
 
 @cli.command()
 @click.option(
+    "-r", "--repo",
+    type=click.Path(exists=True, file_okay=False, dir_okay=True),
+    default=".",
+    help="Repository path"
+)
+@click.option(
+    "-c", "--config",
+    type=click.Path(exists=True, file_okay=True, dir_okay=False),
+    help="Configuration file path"
+)
+@click.option(
+    "-v", "--verbose",
+    is_flag=True,
+    help="Verbose output"
+)
+@click.option(
     "--files",
     help="Comma-separated list of files to include in context"
 )
@@ -576,9 +602,10 @@ def locate(ctx: click.Context, query: str, format: str, max_results: int) -> Non
     default="markdown",
     help="Output format"
 )
-@click.pass_context
 def context(
-    ctx: click.Context,
+    repo: str,
+    config: str,
+    verbose: bool,
     files: Optional[str],
     query: Optional[str],
     focus: Optional[str],
@@ -598,15 +625,10 @@ def context(
     """
     
     try:
-        # Get configuration from context
-        repo = ctx.obj['repo']
-        config_path = ctx.obj['config']
-        verbose = ctx.obj['verbose']
-        
         # Load configuration
         repox_config = RepoxConfig()
-        if config_path:
-            repox_config = RepoxConfig.load_from_file(config_path)
+        if config:
+            repox_config = RepoxConfig.load_from_file(config)
         else:
             repox_config = RepoxConfig().get_effective_config()
         
@@ -640,7 +662,7 @@ def context(
         
         # Build context
         with console.status("📦 Building context..."):
-            from .repomix_integration import RepomixIntegration
+            from ..repository.repomix_integration import RepomixIntegration
             
             repomix_integration = RepomixIntegration(repo, repox_config)
             context_result = repomix_integration.build_context(
@@ -699,8 +721,13 @@ def _display_locate_results(result: Dict[str, Any], max_results: int) -> None:
     
     # Add located files
     for i, file_path in enumerate(result["located_files"][:max_results]):
-        matches = len(result["content_matches"].get(file_path, []))
-        match_text = f"{matches} matches" if matches > 0 else "Filename match"
+        # Handle both dict and list content_matches
+        content_matches = result["content_matches"]
+        if isinstance(content_matches, dict):
+            matches = len(content_matches.get(file_path, []))
+            match_text = f"{matches} matches" if matches > 0 else "Filename match"
+        else:
+            match_text = "Filename match"
         
         table.add_row(
             file_path,
@@ -712,7 +739,11 @@ def _display_locate_results(result: Dict[str, Any], max_results: int) -> None:
     
     # Show summary
     total_files = len(result["located_files"])
-    total_matches = sum(len(matches) for matches in result["content_matches"].values())
+    content_matches = result["content_matches"]
+    if isinstance(content_matches, dict):
+        total_matches = sum(len(matches) for matches in content_matches.values())
+    else:
+        total_matches = 0
     
     console.print(f"\n[bold]Summary:[/bold]")
     console.print(f"  📁 Files found: {total_files}")
