@@ -574,6 +574,7 @@ def locate(query: str, repo: str, config: str, verbose: bool, format: str, max_r
     is_flag=True,
     help="Verbose output"
 )
+
 @click.option(
     "--files",
     help="Comma-separated list of files to include in context"
