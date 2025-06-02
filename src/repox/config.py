@@ -3,9 +3,9 @@
 import json
 import os
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 
 class RepoxConfig(BaseModel):
@@ -96,6 +96,57 @@ class RepoxConfig(BaseModel):
     # Output Configuration
     verbose: bool = Field(default=False, description="Enable verbose output")
     
+    @field_validator('max_file_size')
+    @classmethod
+    def validate_max_file_size(cls, v):
+        """Validate max file size is reasonable."""
+        if v <= 0:
+            raise ValueError("max_file_size must be positive")
+        if v > 10_000_000:  # 10MB
+            raise ValueError("max_file_size too large (max 10MB)")
+        return v
+    
+    @field_validator('max_context_size')
+    @classmethod
+    def validate_max_context_size(cls, v):
+        """Validate max context size is reasonable."""
+        if v <= 0:
+            raise ValueError("max_context_size must be positive")
+        if v > 1_000_000:  # 1M tokens
+            raise ValueError("max_context_size too large (max 1M tokens)")
+        return v
+    
+    @field_validator('location_confidence_threshold')
+    @classmethod
+    def validate_confidence_threshold(cls, v):
+        """Validate confidence threshold is between 0 and 1."""
+        if not 0 <= v <= 1:
+            raise ValueError("location_confidence_threshold must be between 0 and 1")
+        return v
+    
+    @field_validator('openai_base_url')
+    @classmethod
+    def validate_openai_base_url(cls, v):
+        """Validate OpenAI base URL format."""
+        if v and not v.startswith(('http://', 'https://')):
+            raise ValueError("openai_base_url must start with http:// or https://")
+        return v
+    
+    @model_validator(mode='after')
+    def validate_model_config(self):
+        """Validate model configuration consistency."""
+        api_key = self.openai_api_key
+        strong_model = self.strong_model
+        weak_model = self.weak_model
+        
+        # Check if OpenAI models are used without API key
+        openai_models = ['gpt-3.5-turbo', 'gpt-4', 'gpt-4-turbo']
+        if (strong_model in openai_models or weak_model in openai_models) and not api_key:
+            # Only warn, don't fail - API key might be set later
+            pass
+        
+        return self
+    
     @classmethod
     def load_from_file(cls, config_path: Optional[Path] = None) -> "RepoxConfig":
         """Load configuration from file."""
@@ -159,3 +210,68 @@ class RepoxConfig(BaseModel):
         config_data.update({k: v for k, v in env_config.model_dump().items() if v is not None})
         
         return RepoxConfig(**config_data)
+    
+    def update(self, **kwargs) -> "RepoxConfig":
+        """Update configuration with new values and return a new instance."""
+        config_data = self.model_dump()
+        config_data.update(kwargs)
+        return RepoxConfig(**config_data)
+    
+    def is_valid(self) -> bool:
+        """Check if configuration is valid for operation."""
+        try:
+            # Check if we have an API key for OpenAI models
+            openai_models = ['gpt-3.5-turbo', 'gpt-4', 'gpt-4-turbo']
+            if (self.strong_model in openai_models or self.weak_model in openai_models):
+                return bool(self.openai_api_key)
+            return True
+        except Exception:
+            return False
+    
+    def get_missing_requirements(self) -> List[str]:
+        """Get list of missing requirements for operation."""
+        missing = []
+        
+        # Check API key for OpenAI models
+        openai_models = ['gpt-3.5-turbo', 'gpt-4', 'gpt-4-turbo']
+        if (self.strong_model in openai_models or self.weak_model in openai_models):
+            if not self.openai_api_key:
+                missing.append("OPENAI_API_KEY environment variable")
+        
+        return missing
+    
+    def to_dict(self, exclude_secrets: bool = True) -> Dict[str, Any]:
+        """Convert to dictionary, optionally excluding secrets."""
+        exclude_fields = {"openai_api_key"} if exclude_secrets else set()
+        return self.model_dump(exclude=exclude_fields)
+    
+    def to_json(self, exclude_secrets: bool = True, indent: int = 2) -> str:
+        """Convert to JSON string, optionally excluding secrets."""
+        return json.dumps(self.to_dict(exclude_secrets), indent=indent)
+    
+    @classmethod
+    def create_default(cls) -> "RepoxConfig":
+        """Create a default configuration with sensible defaults."""
+        return cls()
+    
+    @classmethod
+    def create_for_large_repo(cls) -> "RepoxConfig":
+        """Create configuration optimized for large repositories."""
+        return cls(
+            max_file_size=50000,  # Smaller files only
+            max_context_size=30000,  # Smaller context
+            max_files_per_request=10,  # Fewer files
+            enable_compression=True,  # Enable compression
+            location_confidence_threshold=0.8,  # Higher confidence
+        )
+    
+    @classmethod
+    def create_for_development(cls) -> "RepoxConfig":
+        """Create configuration optimized for development."""
+        return cls(
+            verbose=True,  # Verbose output
+            max_file_size=200000,  # Larger files OK
+            max_context_size=100000,  # Larger context
+            preserve_file_structure=True,  # Keep structure
+            include_file_metadata=True,  # Include metadata
+        )

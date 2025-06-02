@@ -1,20 +1,23 @@
-# Repox - AI-Powered Code Context Management Assistant
+# 🤖 Repox - AI-Powered Code Assistant
 
-Repox is an intelligent assistant that helps you interact with code repositories using AI. It analyzes your questions, selects relevant code context using repomix, and provides accurate answers about your codebase.
+> **Intelligent code analysis and Q&A for your repositories**
 
-## Features
+Repox transforms how you interact with codebases by providing AI-powered insights, smart file discovery, and intelligent context building. Ask questions in natural language and get precise answers about your code.
 
-- **Smart Context Selection**: Uses AI to determine which files are relevant to your question
-- **File Location**: Locate files and content based on natural language queries
-- **Context Building**: Create optimized context from repository files with intelligent filtering
-- **Enhanced Filtering**: Advanced filtering rules with smart pattern matching
-- **Efficient Processing**: Filters large repositories to include only necessary context
-- **Multi-Model Architecture**: Combines strong and weak AI models for optimal performance
-- **Enhanced Repomix Integration**: Leverages repomix with advanced configuration and compression
-- **Modular Architecture**: Highly cohesive, loosely coupled design for extensibility
-- **Configurable**: Supports multiple AI providers and models
+[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![MIT License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-## Quick Start
+## ✨ Features
+
+- **🧠 Smart Q&A**: Ask questions about your codebase in natural language
+- **🔍 Intelligent File Discovery**: Find relevant files using AI-powered search
+- **📋 Context Building**: Create optimized documentation and analysis contexts
+- **⚡ Fast & Efficient**: Smart filtering and caching for large repositories
+- **🎯 Multiple Output Formats**: JSON, Markdown, and rich terminal output
+- **🔧 Highly Configurable**: Customize AI models, filtering rules, and behavior
+- **🏗️ Modular Architecture**: Extensible design for custom integrations
+
+## 🚀 Quick Start
 
 ### Installation
 
@@ -22,75 +25,125 @@ Repox is an intelligent assistant that helps you interact with code repositories
 pip install repox
 ```
 
-### Configuration
+### Setup
 
-Set up your environment variables:
+1. **Set your OpenAI API key:**
+   ```bash
+   export OPENAI_API_KEY="your-api-key-here"
+   ```
+
+2. **Initialize configuration (optional):**
+   ```bash
+   cd your-project
+   repox init
+   ```
+
+3. **Start asking questions:**
+   ```bash
+   repox ask "How does authentication work in this project?"
+   ```
+
+## 💡 Usage Examples
+
+### Ask Questions About Your Code
 
 ```bash
+# Basic question
+repox ask "What are the main components of this system?"
+
+# Preview file selection before generating answer
+repox ask "How does the database layer work?" --preview
+
+# Get answer in different formats
+repox ask "Explain the API structure" --format markdown
+repox ask "What are the security measures?" --format json
+```
+
+### Find Files and Content
+
+```bash
+# Find files by description
+repox find "authentication functions"
+
+# Search with content analysis (slower but more accurate)
+repox find "database models" --content
+
+# Limit results and format output
+repox find "test files" --limit 5 --format json
+```
+
+### Build Documentation Context
+
+```bash
+# Build context from specific files
+repox build --files "src/auth.py,src/models.py"
+
+# Auto-select files based on query
+repox build --query "authentication system"
+
+# Focus on specific areas with compression
+repox build --query "API endpoints" --focus "api,routes" --compress
+
+# Save to file
+repox build --query "database schema" --output docs/database.md
+```
+
+### Repository Information
+
+```bash
+# Show repository summary
+repox info --summary
+
+# List all processable files
+repox info --files
+
+# Detailed statistics
+repox info --stats
+```
+
+## 🏗️ Architecture
+
+Repox follows a clean, modular architecture designed for extensibility and maintainability:
+
+```
+repox/
+├── cli.py              # Command-line interface
+├── assistant.py        # Main orchestrator
+├── locator.py          # AI-powered file discovery
+├── context.py          # Context building and optimization
+├── repomix_integration.py  # Enhanced repomix integration
+├── repository.py       # Repository analysis
+├── filter.py           # Smart filtering system
+├── models.py           # AI model abstractions
+└── config.py           # Configuration management
+```
+
+### Design Principles
+
+- **🎯 Simplicity First**: Common tasks should be simple, complex tasks possible
+- **🔧 Composable**: Features work well together and can be combined
+- **⚡ Performance**: Optimized for speed with smart caching and filtering
+- **🛡️ Reliable**: Graceful error handling and fallback mechanisms
+- **📈 Extensible**: Easy to add new features and integrations
+
+## ⚙️ Configuration
+
+### Environment Variables
+
+```bash
+# Required
 export OPENAI_API_KEY="your-api-key"
-export OPENAI_BASE_URL="https://api.openai.com/v1"  # Optional
+
+# Optional
+export OPENAI_BASE_URL="https://api.openai.com/v1"
 export REPOX_STRONG_MODEL="gpt-4"
 export REPOX_WEAK_MODEL="gpt-3.5-turbo"
+export REPOX_VERBOSE="true"
 ```
 
-### Usage
+### Configuration File
 
-```bash
-# Ask a question about your codebase
-repox "How does the authentication system work?"
-
-# Specify a different repository
-repox --repo /path/to/repo "What are the main components?"
-
-# Use verbose output
-repox --verbose "Explain the database schema"
-
-# Locate files based on a query
-repox locate "authentication functions"
-
-# Build context from specific files
-repox context --files "src/auth.py,src/login.py"
-
-# Build context based on a query with focus areas
-repox context --query "authentication system" --focus "auth,security"
-
-# Save context to a file with compression
-repox context --query "API endpoints" --compression --output api_context.md
-```
-
-## How It Works
-
-Repox uses an enhanced multi-step process:
-
-1. **Repository Analysis**: Smart filtering analyzes the repository structure and identifies processable files
-2. **File Location**: AI-powered location system finds files relevant to your query using multiple strategies
-3. **Context Building**: Enhanced repomix integration creates optimized context with compression and focus areas
-4. **Context Optimization**: Weak AI model refines the context for better processing
-5. **Answer Generation**: Strong AI model generates the final answer using the optimized context
-
-## Commands
-
-### Main Command
-- `repox "question"` - Ask a question about your codebase
-- `repox --summary` - Show repository summary
-- `repox --list-files` - List processable files
-- `repox --preview "question"` - Preview file selection without generating answer
-
-### File Location
-- `repox locate "query"` - Locate files and content based on a query
-- `repox locate "query" --format json` - Output results in JSON format
-- `repox locate "query" --max-results 5` - Limit number of results
-
-### Context Building
-- `repox context --files "file1,file2"` - Build context from specific files
-- `repox context --query "query"` - Build context based on a query
-- `repox context --focus "area1,area2"` - Focus on specific areas (tests, docs, config)
-- `repox context --compression` - Enable compression to reduce size
-- `repox context --output file.md` - Save context to file
-
-## Configuration
-
-Create a `.repox.json` file in your project root:
+Create `.repox.json` in your project root:
 
 ```json
 {
@@ -98,80 +151,149 @@ Create a `.repox.json` file in your project root:
   "weak_model": "gpt-3.5-turbo",
   "max_file_size": 100000,
   "max_context_size": 50000,
-  "max_files_per_request": 20,
   "location_confidence_threshold": 0.7,
-  "max_content_search_files": 50,
   "enable_compression": false,
-  "preserve_file_structure": true,
-  "include_file_metadata": true,
   "exclude_patterns": [
-    "*.log",
-    "node_modules/**",
-    "__pycache__/**",
-    "build/**",
-    "dist/**",
-    "*.pyc",
-    "*.so",
-    "*.dll"
+    "*.log", "node_modules/**", "__pycache__/**",
+    "build/**", "dist/**", "*.pyc"
   ],
   "skip_large_dirs": [
-    "node_modules",
-    "__pycache__",
-    ".git",
-    "build",
-    "dist"
-  ],
-  "large_dir_threshold": 100
+    "node_modules", "__pycache__", ".git", "build", "dist"
+  ]
 }
 ```
 
-## API Usage
+## 🔧 API Usage
+
+### Basic Usage
 
 ```python
-from repox import RepoxAssistant, FileLocator, RepomixIntegration
-from repox.models import ModelFactory
-from repox.config import RepoxConfig
+from repox import RepoxAssistant
 
-# Basic usage
+# Initialize with default configuration
 assistant = RepoxAssistant("/path/to/repo")
-answer = assistant.ask("How does the caching system work?")
-print(answer)
 
-# Advanced usage with custom configuration
+# Ask a question
+answer = assistant.ask("How does the authentication system work?")
+print(answer)
+```
+
+### Advanced Usage
+
+```python
+from repox import RepoxAssistant, FileLocator, RepoxConfig
+from repox.models import ModelFactory
+
+# Custom configuration
 config = RepoxConfig()
 config.verbose = True
 config.max_context_size = 100000
 
+# Initialize assistant
 assistant = RepoxAssistant("/path/to/repo", config=config)
 
-# File location
+# File discovery
 model = ModelFactory.create_openai_model("gpt-4", "your-api-key")
 locator = FileLocator("/path/to/repo", config, model)
 result = locator.locate_files("authentication functions")
 
 # Context building
-repomix_integration = RepomixIntegration("/path/to/repo", config)
-context = repomix_integration.build_context(
-    selected_files=["src/auth.py", "src/login.py"],
-    focus_areas=["auth", "security"],
-    compression_enabled=True
-)
+context = assistant.build_context_with_repomix(result.located_files)
 ```
 
-## Architecture
+### Custom AI Models
 
-Repox follows a modular, highly cohesive, and loosely coupled architecture:
+```python
+from repox.models import AIModel
 
-- **`assistant.py`**: Main orchestrator that coordinates all components
-- **`locator.py`**: AI-powered file location with content search
-- **`filter.py`**: Smart filtering with pattern matching and relevance scoring
-- **`context.py`**: Context building and optimization
-- **`repomix_integration.py`**: Enhanced repomix integration with advanced features
-- **`repository.py`**: Repository analysis and file management
-- **`models.py`**: AI model interfaces and abstractions
-- **`config.py`**: Configuration management with environment variable support
-- **`cli.py`**: Command-line interface with subcommands
+class CustomModel(AIModel):
+    def generate_sync(self, messages, **kwargs):
+        # Your custom implementation
+        pass
 
-## License
+# Use with Repox
+assistant = RepoxAssistant("/path/to/repo")
+assistant.strong_model = CustomModel()
+```
 
-MIT License - see LICENSE file for details.
+## 🎨 Output Formats
+
+### Terminal (Default)
+Rich, colorized output with tables, panels, and progress indicators.
+
+### JSON
+Structured data perfect for automation and integration:
+```json
+{
+  "question": "How does authentication work?",
+  "answer": "The authentication system uses...",
+  "files": ["src/auth.py", "src/models/user.py"],
+  "confidence": 0.95
+}
+```
+
+### Markdown
+Human-readable format ideal for documentation:
+```markdown
+# Question
+How does authentication work?
+
+# Answer
+The authentication system uses JWT tokens...
+```
+
+## 🔍 Smart Filtering
+
+Repox automatically excludes irrelevant files to improve performance and accuracy:
+
+- **Build artifacts**: `build/`, `dist/`, `*.pyc`, `*.so`
+- **Dependencies**: `node_modules/`, `__pycache__/`, `.venv/`
+- **Version control**: `.git/`, `.svn/`, `.hg/`
+- **Logs and temp files**: `*.log`, `*.tmp`, `cache/`
+- **Media files**: `*.jpg`, `*.png`, `*.mp4`, `*.pdf`
+- **Security sensitive**: `.env`, `*.key`, `*.pem`
+
+## 🚀 Performance Tips
+
+1. **Use `.repox.json`** to customize filtering for your project
+2. **Set appropriate file size limits** to avoid processing huge files
+3. **Use `--preview`** to check file selection before full analysis
+4. **Enable compression** for large contexts with `--compress`
+5. **Focus on specific areas** with `--focus` to reduce noise
+
+## 🤝 Contributing
+
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
+
+### Development Setup
+
+```bash
+# Clone the repository
+git clone https://github.com/Whopus/Repox.git
+cd Repox
+
+# Install in development mode
+pip install -e .
+
+# Run tests
+pytest
+
+# Install pre-commit hooks
+pre-commit install
+```
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- Built on top of the excellent [repomix](https://github.com/andersonby/python-repomix) library
+- Inspired by the need for better code understanding tools
+- Thanks to the open-source community for continuous inspiration
+
+---
+
+**Made with ❤️ by the Repox team**
+
+*Transform your codebase interaction with AI-powered intelligence.*
